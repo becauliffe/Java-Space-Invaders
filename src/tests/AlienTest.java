@@ -1,4 +1,5 @@
 package tests;
+import com.zetcode.Commons;
 import com.zetcode.sprite.Alien;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -9,14 +10,21 @@ import static org.junit.jupiter.api.Assertions.*;
 public class AlienTest {
 
     // methodName_expectedBehavior_scenariowithinputvalues
-    @Test
-    public void constructor_InitializeAlienWithXY_ValidCoordinateValuesXY() {
-        // arrange
-        int x = 10;
-        int y = 14;
+    @ParameterizedTest
+    @CsvSource({
+            // game board's origin (0,0) is top-left corner
+            Commons.BORDER_LEFT + ", " + Commons.GROUND,          // boundary: border left and on ground
+            Commons.BOARD_WIDTH + ", " + Commons.BOARD_HEIGHT,    // boundary: border width and height
+            "-" + Commons.BORDER_LEFT + ", -" + Commons.GROUND,   // equivalence partition: negative border left and on the ground
+            Commons.BORDER_RIGHT + ", 0",                         // boundary: border right and ground
+            Commons.BORDER_LEFT + ", 0",                          // boundary: border left and ground
+            Commons.ALIEN_INIT_X + ", " + Commons.ALIEN_INIT_Y,   // default position of alien
 
+    })
+    public void testAlienConstructorInitialization_ValidCoordinates(int x, int y) {
+        // arrange
         // act
-        Alien alien = new Alien(x,y);
+        Alien alien = new Alien(x, y);
 
         // assert
         assertEquals(x, alien.getX(), "The Alien's X coordinate should be initialized correctly");
@@ -25,10 +33,12 @@ public class AlienTest {
 
     @ParameterizedTest
     @CsvSource({
-            // Move to right
-            "0, 1",
-            // Move to left
-            "0, -1",
+            "0, 1",  // Move to right
+            "0, -1", // Move to left
+            "0, 0",   // No movement
+            Commons.BOARD_WIDTH + ", 1",  // Move right at board width
+            "-" + Commons.BORDER_LEFT + ", -1" // Move left at border left
+
     })
     public void act_MoveAlienLeftOrRight_ModifiesXCoordinate(int initialX, int direction) {
         // arrange
@@ -41,6 +51,7 @@ public class AlienTest {
         assertEquals(initialX + direction, alien.getX());
     }
 
+    // Bomb class tests
     @Test
     public void getBomb_NotNull() {
         // arrange
@@ -54,11 +65,16 @@ public class AlienTest {
     }
 
     // Bomb class
-    @Test
-    public void constructor_InitializeBombWithXY_ValidCoordinateValuesXY() {
+    @ParameterizedTest
+    @CsvSource({
+            Commons.BOARD_WIDTH + ", " + Commons.BOARD_HEIGHT, // boundary: board width and height
+            "-" + Commons.BORDER_LEFT + ", -" + Commons.GROUND,// equivalence partition: negative board left and ground
+            Commons.BORDER_RIGHT + ", " + Commons.GROUND,      // boundary: board right and ground
+            Commons.BORDER_LEFT + ", " + Commons.GROUND,       // boundary: board left and ground
+            Commons.ALIEN_INIT_X + ", " + Commons.ALIEN_INIT_Y // default position
+    })
+    public void constructor_InitializeBombWithXY_ValidCoordinateValuesXY(int x, int y) {
         // arrange
-        int x = 15;
-        int y = 20;
         Alien alien = new Alien(0, 0);
 
         // act
