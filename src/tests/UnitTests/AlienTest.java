@@ -21,7 +21,7 @@ public class AlienTest {
             Commons.ALIEN_INIT_X + ", " + Commons.ALIEN_INIT_Y,   // default position of alien
 
     })
-    public void testAlienConstructorInitialization_ValidCoordinates(int x, int y) {
+    public void constructor_initiliazeAlien_ValidCoordinates(int x, int y) {
         // arrange
         // act
         Alien alien = new Alien(x, y);
