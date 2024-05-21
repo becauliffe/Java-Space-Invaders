@@ -1,4 +1,4 @@
-package tests.UnitTests;
+package UnitTests;
 
 import com.zetcode.sprite.Player;
 import org.junit.jupiter.api.Test;
@@ -24,6 +24,18 @@ public class PlayerTest {
     }
 
     @Test
+    public void just_act() {
+        // arrange
+        Player player = new Player();
+
+        // act
+        player.act();
+
+        // assert
+        assertNotNull(player, "Player successfully initialized.");
+    }
+
+    @Test
     public void keyPressed_PressLeftArrowKey_MovePlayerLeft() {
         // Arrange
         Player player = new Player();
@@ -33,6 +45,7 @@ public class PlayerTest {
 
         // Act
         player.keyPressed(keyEvent);
+        player.act();
 
         // Assert
         assertEquals(initialX - 2, player.getX(), "Player should move left by 2 units after pressing the left arrow key");
@@ -48,6 +61,7 @@ public class PlayerTest {
 
         // Act
         player.keyPressed(keyEvent);
+        player.act();
 
         // Assert
         assertEquals(initialX + 2, player.getX(), "Player should move right by 2 units after pressing the right arrow key");
@@ -63,6 +77,8 @@ public class PlayerTest {
 
         // Act
         player.keyReleased(keyEvent);
+        player.act();
+
 
         // Assert
         assertEquals(initialX, player.getX(), "Player should stop moving after releasing the left arrow key");
@@ -78,6 +94,8 @@ public class PlayerTest {
 
         // Act
         player.keyReleased(keyEvent);
+        player.act();
+
 
         // Assert
         assertEquals(initialX, player.getX(), "Player should stop moving after releasing the right arrow key");

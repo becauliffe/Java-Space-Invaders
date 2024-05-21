@@ -1,4 +1,4 @@
-package tests.UnitTests;
+package UnitTests;
 
 public class BoardTest {
 }
