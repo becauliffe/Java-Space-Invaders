@@ -42,6 +42,7 @@ public class Player extends Sprite {
 
             x = Commons.BOARD_WIDTH - 2 * width;
         }
+
     }
 
     public void keyPressed(KeyEvent e) {
@@ -73,4 +74,7 @@ public class Player extends Sprite {
             dx = 0;
         }
     }
+
+
+
 }

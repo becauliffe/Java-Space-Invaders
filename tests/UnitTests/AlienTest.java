@@ -1,4 +1,4 @@
-package UnitTests;
+//package UnitTests;
 import com.zetcode.Commons;
 import com.zetcode.sprite.Alien;
 import org.junit.jupiter.api.Test;
