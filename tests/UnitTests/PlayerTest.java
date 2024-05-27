@@ -311,6 +311,4 @@ public class PlayerTest {
         player.setImage(ii.getImage());
 
     }
-
-
 }
