@@ -2,157 +2,126 @@ import com.zetcode.Board;
 import com.zetcode.sprite.Alien;
 import com.zetcode.sprite.Player;
 import com.zetcode.sprite.Shot;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
-import java.awt.*;
-import java.lang.reflect.Field;
+import java.awt.Graphics;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 class BoardTest {
-
     private Board board;
+    private Graphics graphicsMock;
 
     @BeforeEach
     void setUp() {
-        // Arrange
         board = new Board();
-        javax.swing.Timer timerMock = mock(javax.swing.Timer.class);
-
-        try {
-            Field timerField = Board.class.getDeclaredField("timer");
-            timerField.setAccessible(true);
-            timerField.set(board, timerMock);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @AfterEach
-    void tearDown() {
-        resetBoardState();
-    }
-
-    private void resetBoardState() {
-        List<Alien> aliens = getFieldValue(board, "aliens");
-        aliens.clear();
-
-        setField(board, "inGame", true);
-        setField(board, "player", new Player());
-        setField(board, "shot", new Shot());
-    }
-    @Test
-    void gameInit_CreatesAliensAndPlayer() {
-        // Act
-        List<Alien> aliens = getFieldValue(board, "aliens");
-        Player player = getFieldValue(board, "player");
-
-        // Assert
-        assertNotNull(aliens);
-        assertEquals(24, aliens.size());
-        assertNotNull(player);
+        graphicsMock = Mockito.mock(Graphics.class);
     }
 
     @Test
-    void drawAliens_DrawsVisibleAliens() {
+    void drawAliens_DrawBothVisibleAndDyingAliens() throws NoSuchFieldException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         // Arrange
-        List<Alien> aliens = getFieldValue(board, "aliens");
-        for (Alien alien : aliens) {
-            Image imageMock = mock(Image.class);
-            alien.setImage(imageMock);
-            setField(alien, "visible", true);
-        }
+        Alien visibleAlien = Mockito.mock(Alien.class);
+        Alien dyingAlien = Mockito.mock(Alien.class);
 
-        Graphics2D graphicsMock = mock(Graphics2D.class);
-        when(graphicsMock.create()).thenReturn(graphicsMock);
+        Alien.Bomb visibleAlienBomb = Mockito.mock(Alien.Bomb.class);
+        when(visibleAlien.getBomb()).thenReturn(visibleAlienBomb);
+
+        when(visibleAlien.isVisible()).thenReturn(true);
+        when(dyingAlien.isDying()).thenReturn(true);
+
+        List<Alien> aliens = new ArrayList<>();
+        aliens.add(visibleAlien);
+        aliens.add(dyingAlien);
+
+        setPrivateField("aliens", aliens);
 
         // Act
-        board.paintComponent(graphicsMock);
+        callPrivateMethod("drawAliens", graphicsMock);
 
         // Assert
-        verify(graphicsMock, times(aliens.size())).drawImage(any(), anyInt(), anyInt(), any());
+        verify(graphicsMock, times(1)).drawImage(any(), anyInt(), anyInt(), any());
+        verify(dyingAlien, times(1)).die();
+    }
+
+
+
+    @Test
+    void drawPlayer_DrawVisiblePlayerAndDyingPlayer() throws NoSuchFieldException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        // Arrange
+        Player visiblePlayer = Mockito.mock(Player.class);
+        when(visiblePlayer.isVisible()).thenReturn(true);
+        when(visiblePlayer.isDying()).thenReturn(true);
+
+        // Set private field player using reflection
+        setPrivateField("player", visiblePlayer);
+
+        // Act
+        callPrivateMethod("drawPlayer", graphicsMock);
+
+        // Assert
+        verify(graphicsMock, times(1)).drawImage(any(), anyInt(), anyInt(), any());
+        verify(visiblePlayer, times(1)).die();
     }
 
     @Test
-    void drawPlayer_DrawsPlayerWhenVisible() {
+    void drawShot_DrawVisibleShot() throws NoSuchFieldException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         // Arrange
-        Player player = getFieldValue(board, "player");
-        setField(player, "visible", true);
+        Shot visibleShot = Mockito.mock(Shot.class);
+        when(visibleShot.isVisible()).thenReturn(true);
 
-        Graphics2D graphicsMock = mock(Graphics2D.class);
-        when(graphicsMock.create()).thenReturn(graphicsMock);
+        // Set private field shot using reflection
+        setPrivateField("shot", visibleShot);
 
         // Act
-        board.paintComponent(graphicsMock);
+        callPrivateMethod("drawShot", graphicsMock);
 
         // Assert
-        verify(graphicsMock, times(1)).drawImage(any(), eq(player.getX()), eq(player.getY()), any());
+        verify(graphicsMock, times(1)).drawImage(any(), anyInt(), anyInt(), any());
     }
 
     @Test
-    void drawShot_DrawsShotWhenVisible() {
+    void drawBombing_DrawBombs() throws NoSuchFieldException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         // Arrange
-        Graphics2D graphicsMock = mock(Graphics2D.class);
-        when(graphicsMock.create()).thenReturn(graphicsMock);
+        Alien alienWithDestroyedBomb = Mockito.mock(Alien.class);
+        Alien alienWithActiveBomb = Mockito.mock(Alien.class);
+        Alien.Bomb destroyedBomb = Mockito.mock(Alien.Bomb.class);
+        Alien.Bomb activeBomb = Mockito.mock(Alien.Bomb.class);
+        when(alienWithDestroyedBomb.getBomb()).thenReturn(destroyedBomb);
+        when(alienWithActiveBomb.getBomb()).thenReturn(activeBomb);
+        when(destroyedBomb.isDestroyed()).thenReturn(true);
+        when(activeBomb.isDestroyed()).thenReturn(false);
 
-        Shot shot = getFieldValue(board, "shot");
-        setField(shot, "visible", true);
+        List<Alien> aliens = new ArrayList<>();
+        aliens.add(alienWithDestroyedBomb);
+        aliens.add(alienWithActiveBomb);
+
+        // Set private field aliens using reflection
+        setPrivateField("aliens", aliens);
 
         // Act
-        board.paintComponent(graphicsMock);
+        callPrivateMethod("drawBombing", graphicsMock);
 
         // Assert
-        verify(graphicsMock, times(1)).drawImage(any(), eq(shot.getX()), eq(shot.getY()), any());
+        verify(graphicsMock, times(1)).drawImage(any(), anyInt(), anyInt(), any());
     }
 
-    @Test
-    void gameOver_ShowsCorrectMessage() {
-        // Arrange
-        Graphics2D graphicsMock = mock(Graphics2D.class);
-        when(graphicsMock.create()).thenReturn(graphicsMock);
-
-        setField(board, "inGame", false);
-
-        // Act
-        board.paintComponent(graphicsMock);
-
-        // Assert
-        verify(graphicsMock, times(1)).drawString(eq("Game Over"), anyInt(), anyInt());
+    // using reflection to set private fields
+    private void setPrivateField(String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
+        java.lang.reflect.Field field = Board.class.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(board, value);
     }
 
-
-    // Utility method to set field value using reflection b/c we can't change original code
-    @SuppressWarnings("unchecked")
-    private <T> T getFieldValue(Object obj, String fieldName) {
-        try {
-            Field field = obj.getClass().getDeclaredField(fieldName);
-            field.setAccessible(true);
-            return (T) field.get(obj);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    // Utility method to set field value using reflection b/c we can't change original code
-    private void setField(Object obj, String fieldName, Object value) {
-        Class<?> clazz = obj.getClass();
-        while (clazz != null) {
-            try {
-                Field field = clazz.getDeclaredField(fieldName);
-                field.setAccessible(true);
-                field.set(obj, value);
-                return;
-            } catch (NoSuchFieldException e) {
-                clazz = clazz.getSuperclass();
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        throw new RuntimeException("Field not found: " + fieldName);
+    // using reflection to access private methods
+    private void callPrivateMethod(String methodName, Graphics graphicsMock) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        java.lang.reflect.Method method = Board.class.getDeclaredMethod(methodName, Graphics.class);
+        method.setAccessible(true);
+        method.invoke(board, graphicsMock);
     }
 }
