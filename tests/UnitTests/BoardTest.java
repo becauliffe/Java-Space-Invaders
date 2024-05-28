@@ -3,13 +3,14 @@ import com.zetcode.Commons;
 import com.zetcode.sprite.Alien;
 import com.zetcode.sprite.Player;
 import com.zetcode.sprite.Shot;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mockito;
 
-import java.awt.Graphics;
+import java.awt.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -27,6 +28,12 @@ class BoardTest {
     void setUp() {
         board = new Board();
         graphicsMock = Mockito.mock(Graphics.class);
+    }
+
+    @AfterEach
+    void tearDown() {
+        // Reset the state of the Board object after each test
+        board = new Board(); // Reinitialize the Board
     }
 
     @Test
@@ -301,6 +308,37 @@ class BoardTest {
                 verify(bomb, never()).setDestroyed(false);
             }
         }
+    }
+
+    @Test
+    void update_AlienShotCollision() throws NoSuchFieldException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        // Arrange
+        Alien alien = Mockito.mock(Alien.class);
+        when(alien.isVisible()).thenReturn(true);
+        when(alien.getX()).thenReturn(50);
+        when(alien.getY()).thenReturn(50);
+
+        // Mock the Bomb object
+        Alien.Bomb bomb = Mockito.mock(Alien.Bomb.class);
+        when(alien.getBomb()).thenReturn(bomb); // Associate the mocked Bomb with the Alien
+
+        Shot shot = Mockito.mock(Shot.class);
+        when(shot.isVisible()).thenReturn(true);
+        when(shot.getX()).thenReturn(50);
+        when(shot.getY()).thenReturn(50);
+
+        List<Alien> aliens = new ArrayList<>();
+        aliens.add(alien);
+
+        setPrivateField("aliens", aliens);
+        setPrivateField("shot", shot);
+        setPrivateField("deaths", 0);
+
+        // Act
+        callPrivateMethod();
+
+        // Assert
+        assertEquals(1, (int) getPrivateField("deaths"));
     }
 
     // Reflection utility methods
