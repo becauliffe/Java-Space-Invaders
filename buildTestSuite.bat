@@ -1,36 +1,50 @@
+@echo off
 rem Build Test Code and Software Under Test using Maven
 echo Building Test Code and Software Under Test...
-mvn clean install
 
-rem Run Test Code using Maven
-echo Running Test Code...
-mvn test
+set /p recipient_email=Enter your email:
+set /p password=Enter your password:
 
-rem Check if build and tests were successful
-set build_success=True
-set tests_pass=True
+set build_success=False
+set tests_pass=False
 
-rem Check if build failed
+call mvn clean install
 if %ERRORLEVEL% neq 0 (
-    set build_success=False
+    echo Build failed.
+) else (
+    echo Build succeeded.
+    set build_success=True
+)
+
+rem Run Test Code using Maven if the build was successful
+if "%build_success%"=="True" (
+    echo Running Test Code...
+    call mvn test
+    if %ERRORLEVEL% neq 0 (
+        echo Tests failed.
+    ) else (
+        echo Tests passed.
+        set tests_pass=True
+    )
 )
 
 rem Check if Surefire Reports exist and parse test results
-set tests_pass=True
-for /R target\surefire-reports %%f in (*.xml) do (
-    findstr /C:"<failure" "%%f" > nul
-    if %ERRORLEVEL% equ 0 (
-        set tests_pass=False
-        goto :end_loop
+if "%tests_pass%"=="False" (
+    for /R target\surefire-reports %%f in (*.xml) do (
+        findstr /C:"<failure" "%%f" > nul
+        if %ERRORLEVEL% equ 0 (
+            echo Test failures found in %%f.
+            set tests_pass=False
+        )
     )
 )
-:end_loop
 
+:send_email
 rem Prepare email content
 set subject=Test Status Report
 set body=Build succeeded: %build_success%, Tests passed: %tests_pass%
 
 rem Send email using Send-MailMessage cmdlet
-powershell.exe -Command "$password = ConvertTo-SecureString 'pioy cwrb lmem bhzy' -AsPlainText -Force; $credential = New-Object System.Management.Automation.PSCredential ('emilynaruto8@gmail.com', $password); Send-MailMessage -To '%recipient_email%' -From 'emilynaruto8@gmail.com' -Subject '%subject%' -Body '%body%' -SmtpServer 'smtp.gmail.com' -Port 587 -Credential $credential -UseSsl -DeliveryNotificationOption OnFailure"
+powershell.exe -Command "$password = ConvertTo-SecureString '%password%' -AsPlainText -Force; $credential = New-Object System.Management.Automation.PSCredential ('%recipient_email%', $password); Send-MailMessage -To '%recipient_email%' -From '%recipient_email%' -Subject '%subject%' -Body '%body%' -SmtpServer 'smtp.gmail.com' -Port 587 -Credential $credential -UseSsl -DeliveryNotificationOption OnFailure"
 
 echo Status email sent to %recipient_email%

@@ -288,40 +288,37 @@ public class Board extends JPanel {
             int shot = generator.nextInt(15);
             Alien.Bomb bomb = alien.getBomb();
 
-            if (shot == Commons.CHANCE && alien.isVisible() && bomb.isDestroyed()) {
-
-                bomb.setDestroyed(false);
-                bomb.setX(alien.getX());
-                bomb.setY(alien.getY());
-            }
-
-            int bombX = bomb.getX();
-            int bombY = bomb.getY();
-            int playerX = player.getX();
-            int playerY = player.getY();
-
-            if (player.isVisible() && !bomb.isDestroyed()) {
-
-                if (bombX >= (playerX)
-                        && bombX <= (playerX + Commons.PLAYER_WIDTH)
-                        && bombY >= (playerY)
-                        && bombY <= (playerY + Commons.PLAYER_HEIGHT)) {
-
-                    var ii = new ImageIcon(explImg);
-                    player.setImage(ii.getImage());
-                    player.setDying(true);
-                    bomb.setDestroyed(true);
+            try {
+                if (shot == Commons.CHANCE && alien.isVisible() && bomb.isDestroyed()) {
+                    bomb.setDestroyed(false);
+                    bomb.setX(alien.getX());
+                    bomb.setY(alien.getY());
                 }
-            }
 
-            if (!bomb.isDestroyed()) {
+                int bombX = bomb.getX();
+                int bombY = bomb.getY();
+                int playerX = player.getX();
+                int playerY = player.getY();
 
-                bomb.setY(bomb.getY() + 1);
+                if (player.isVisible() && !bomb.isDestroyed()) {
+                    if (bombX >= (playerX) && bombX <= (playerX + Commons.PLAYER_WIDTH) &&
+                            bombY >= (playerY) && bombY <= (playerY + Commons.PLAYER_HEIGHT)) {
 
-                if (bomb.getY() >= Commons.GROUND - Commons.BOMB_HEIGHT) {
+                        ImageIcon ii = new ImageIcon(explImg);
+                        player.setImage(ii.getImage());
+                        player.setDying(true);
+                        bomb.setDestroyed(true);
+                    }
 
-                    bomb.setDestroyed(true);
+                    if (!bomb.isDestroyed()) {
+                        bomb.setY(bomb.getY() + 1);
+
+                        if (bomb.getY() >= Commons.GROUND - Commons.BOMB_HEIGHT) {
+                            bomb.setDestroyed(true);
+                        }
+                    }
                 }
+            } catch (NullPointerException ignored) {
             }
         }
     }

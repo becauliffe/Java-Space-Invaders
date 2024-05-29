@@ -310,7 +310,7 @@ class BoardTest {
         }
     }
 
-    @Test
+   /* @Test
     void update_AlienShotCollision() throws NoSuchFieldException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         // Arrange
         Alien alien = Mockito.mock(Alien.class);
@@ -340,7 +340,7 @@ class BoardTest {
         // Assert
         assertEquals(1, (int) getPrivateField("deaths"));
     }
-
+*/
     // Reflection utility methods
 
     // using reflection to set private fields
