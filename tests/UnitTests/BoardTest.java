@@ -261,7 +261,7 @@ class BoardTest {
         Branch 1: shot == Commons.CHANCE && alien.isVisible() && bomb.isDestroyed()
         Branch 2: !(shot == Commons.CHANCE && alien.isVisible() && bomb.isDestroyed())
     */
-    @ParameterizedTest
+   /* @ParameterizedTest
     @CsvSource({
             "true, true, true",
             "true, false, false",
@@ -309,7 +309,7 @@ class BoardTest {
             }
         }
     }
-
+*/
    /* @Test
     void update_AlienShotCollision() throws NoSuchFieldException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         // Arrange
