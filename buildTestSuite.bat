@@ -16,7 +16,6 @@ if %ERRORLEVEL% neq 0 (
     set build_success=True
 )
 
-rem Run Test Code using Maven if the build was successful
 if "%build_success%"=="True" (
     echo Running Test Code...
     call mvn test
@@ -28,7 +27,6 @@ if "%build_success%"=="True" (
     )
 )
 
-rem Check if Surefire Reports exist and parse test results
 if "%tests_pass%"=="False" (
     for /R target\surefire-reports %%f in (*.xml) do (
         findstr /C:"<failure" "%%f" > nul
@@ -40,11 +38,9 @@ if "%tests_pass%"=="False" (
 )
 
 :send_email
-rem Prepare email content
 set subject=Test Status Report
 set body=Build succeeded: %build_success%, Tests passed: %tests_pass%
 
-rem Send email using Send-MailMessage cmdlet
 powershell.exe -Command "$password = ConvertTo-SecureString '%password%' -AsPlainText -Force; $credential = New-Object System.Management.Automation.PSCredential ('%recipient_email%', $password); Send-MailMessage -To '%recipient_email%' -From '%recipient_email%' -Subject '%subject%' -Body '%body%' -SmtpServer 'smtp.gmail.com' -Port 587 -Credential $credential -UseSsl -DeliveryNotificationOption OnFailure"
 
 echo Status email sent to %recipient_email%
