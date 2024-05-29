@@ -257,90 +257,30 @@ class BoardTest {
         }
     }
 
-    /* Condition 6: if (x <= Commons.BORDER_LEFT && direction != 1)
-        Branch 1: shot == Commons.CHANCE && alien.isVisible() && bomb.isDestroyed()
-        Branch 2: !(shot == Commons.CHANCE && alien.isVisible() && bomb.isDestroyed())
-    */
-   /* @ParameterizedTest
-    @CsvSource({
-            "true, true, true",
-            "true, false, false",
-            "false, true, true",
-            "true, true, false"
-    })
-    void update_AlienShotConditions(boolean isChanceMatch, boolean isAlienVisible, boolean isBombDestroyed)
-            throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    @Test
+    void update_AlienAtRightBorderAndMovingRight_ChangeDirectionToPositive() throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         // Arrange
         setPrivateField("inGame", true);
         setPrivateField("deaths", 0);
 
-        // Create a list of aliens
-        List<Alien> aliens = new ArrayList<>();
         Alien alien = Mockito.mock(Alien.class);
-        Shot shot = Mockito.mock(Shot.class);
-        aliens.add(alien);
-
-        // Set private fields
-        setPrivateField("aliens", aliens);
-        setPrivateField("shot", shot);
-
         Alien.Bomb bomb = Mockito.mock(Alien.Bomb.class);
-        for (Alien currentAlien : aliens) {
-            // Mock behavior for each alien
-            when(currentAlien.isVisible()).thenReturn(isAlienVisible);
-            when(shot.isVisible()).thenReturn(true);
-            when(shot.getX()).thenReturn(Commons.BOARD_WIDTH / 2);
-            when(shot.getY()).thenReturn(Commons.BOARD_HEIGHT / 2);
-            when(currentAlien.getBomb()).thenReturn(bomb); // Associate the bomb mock with each alien
-            when(bomb.isDestroyed()).thenReturn(isBombDestroyed);
-        }
+        setPrivateField("aliens", Collections.singletonList(alien));
 
-        // Act
-        callPrivateMethod();
-
-        // Assert
-        if (isChanceMatch && isAlienVisible && !isBombDestroyed) {
-            for (Alien currentAlien : aliens) {
-                verify(currentAlien).getBomb();
-            }
-        } else {
-            for (Alien currentAlien : aliens) {
-                verify(bomb, never()).setDestroyed(false);
-            }
-        }
-    }
-*/
-   /* @Test
-    void update_AlienShotCollision() throws NoSuchFieldException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        // Arrange
-        Alien alien = Mockito.mock(Alien.class);
+        when(alien.getX()).thenReturn(Commons.BOARD_WIDTH - Commons.BORDER_RIGHT);
         when(alien.isVisible()).thenReturn(true);
-        when(alien.getX()).thenReturn(50);
-        when(alien.getY()).thenReturn(50);
+        when(alien.getBomb()).thenReturn(bomb);
 
-        // Mock the Bomb object
-        Alien.Bomb bomb = Mockito.mock(Alien.Bomb.class);
-        when(alien.getBomb()).thenReturn(bomb); // Associate the mocked Bomb with the Alien
-
-        Shot shot = Mockito.mock(Shot.class);
-        when(shot.isVisible()).thenReturn(true);
-        when(shot.getX()).thenReturn(50);
-        when(shot.getY()).thenReturn(50);
-
-        List<Alien> aliens = new ArrayList<>();
-        aliens.add(alien);
-
-        setPrivateField("aliens", aliens);
-        setPrivateField("shot", shot);
-        setPrivateField("deaths", 0);
+        setPrivateField("direction", 1);
 
         // Act
         callPrivateMethod();
 
         // Assert
-        assertEquals(1, (int) getPrivateField("deaths"));
+        assertEquals(-1, getPrivateField("direction"), "Direction should change to -1 when an alien is at the right border and moving right");
     }
-*/
+
+
     // Reflection utility methods
 
     // using reflection to set private fields
