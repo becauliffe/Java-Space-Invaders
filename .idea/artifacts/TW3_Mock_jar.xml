@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="TW3-Mock:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/TW3_Mock_jar</output-path>
+    <root id="archive" name="TW3-Mock.jar">
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/META-INF/MANIFEST.MF" />
+      </element>
+      <element id="module-output" name="TW3-Mock" />
+    </root>
+  </artifact>
+</component>
