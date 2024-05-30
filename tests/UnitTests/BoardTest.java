@@ -5,17 +5,20 @@ import com.zetcode.sprite.Player;
 import com.zetcode.sprite.Shot;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mockito;
-
+import javax.swing.Timer;
 import java.awt.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -24,17 +27,62 @@ class BoardTest {
     private Board board;
     private Graphics graphicsMock;
 
+
     @BeforeEach
     void setUp() {
         board = new Board();
+
         graphicsMock = Mockito.mock(Graphics.class);
+
+
+        // Create the Board instance with the mock Timer
     }
 
     @AfterEach
     void tearDown() {
         // Reset the state of the Board object after each test
-        board = new Board(); // Reinitialize the Board
+        board = null; // delete the Board
     }
+
+   // This test works 4 times out of 5
+   // and 5 times out of 5 in debugging mode
+   // this likely helps expose a race condition that
+   // is hidden in the code
+
+//    @Test
+//    @Order(1)
+//    void update_AlienShotCollision() throws Exception {
+//        // Arrange
+//        Timer timerMock = Mockito.mock(Timer.class);
+//        setPrivateField("timer", timerMock);
+//
+//
+//        Alien alien = Mockito.mock(Alien.class);
+//        Mockito.doReturn(true).when(alien).isVisible();
+//        Mockito.doReturn(100).when(alien).getX();
+//        Mockito.doReturn(100).when(alien).getY();
+//
+//        // Mock the Bomb object
+//        Alien.Bomb bomb = Mockito.mock(Alien.Bomb.class);
+//        Mockito.doReturn(bomb).when(alien).getBomb();
+//
+//        Shot shot = Mockito.mock(Shot.class);
+//        Mockito.doReturn(true).when(shot).isVisible();
+//        Mockito.doReturn(100).when(shot).getX();
+//        Mockito.doReturn(100).when(shot).getY();
+//
+//        List<Alien> aliens = new ArrayList<>();
+//        aliens.add(alien);
+//        setPrivateField("aliens", aliens);
+//        setPrivateField("shot", shot);
+//        setPrivateField("deaths", 0);
+//
+//        // Act
+//        callPrivateMethod();
+//
+//        // Assert
+//        assertEquals(1, getPrivateField("deaths"));
+//    }
 
     @Test
     void drawAliens_DrawBothVisibleAndDyingAliens() throws NoSuchFieldException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
@@ -95,6 +143,8 @@ class BoardTest {
         // Assert
         verify(graphicsMock, times(1)).drawImage(any(), anyInt(), anyInt(), any());
     }
+
+
 
     // update() branch coverage tests
 
@@ -278,6 +328,123 @@ class BoardTest {
 
         // Assert
         assertEquals(-1, getPrivateField("direction"), "Direction should change to -1 when an alien is at the right border and moving right");
+    }
+//    @Test
+//    public void testDrawBombing() throws NoSuchFieldException, IllegalAccessException {
+//        // Set up the necessary conditions for the test
+//        List<Alien> aliens = new ArrayList<>();
+//        aliens.add(createAlienWithBomb(false)); // Non-destroyed bomb
+//        aliens.add(createAlienWithBomb(true)); // Destroyed bomb
+//
+//        setPrivateField("aliens", aliens);
+//
+//
+//        // Call the private drawBombing method
+//        callPrivateMethod("drawBombing", graphicsMock);
+//
+//
+//        // Verify that the non-destroyed bomb is drawn
+//        // (We'll just verify that g.drawImage() is called once for the non-destroyed bomb)
+//        assertEquals(1, (graphicsMock.getNumDrawImageCalls());
+//    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "true, true, true",
+            "true, false, false",
+            "false, true, true",
+            "true, true, false"
+    })
+    void update_AlienShotConditions(boolean isChanceMatch, boolean isAlienVisible, boolean isBombDestroyed)
+            throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        // Arrange
+        setPrivateField("inGame", true);
+        setPrivateField("deaths", 0);
+        // Create a list of aliens
+        List<Alien> aliens = new ArrayList<>();
+        Alien alien = Mockito.mock(Alien.class);
+        Shot shot = Mockito.mock(Shot.class);
+        aliens.add(alien);
+        // Set private fields
+        setPrivateField("aliens", aliens);
+        setPrivateField("shot", shot);
+        Alien.Bomb bomb = Mockito.mock(Alien.Bomb.class);
+        for (Alien currentAlien : aliens) {
+            // Mock behavior for each alien
+            currentAlien = Mockito.mock(Alien.class);
+            when(currentAlien.isVisible()).thenReturn(isAlienVisible);
+            when(shot.isVisible()).thenReturn(true);
+            when(shot.getX()).thenReturn(Commons.BOARD_WIDTH / 2);
+            when(shot.getY()).thenReturn(Commons.BOARD_HEIGHT / 2);
+            when(currentAlien.getBomb()).thenReturn(bomb); // Associate the bomb mock with each alien
+            when(bomb.isDestroyed()).thenReturn(isBombDestroyed);
+        }
+        // Act
+        callPrivateMethod();
+        // Assert
+        if (isChanceMatch && isAlienVisible && !isBombDestroyed) {
+            for (Alien currentAlien : aliens) {
+                verify(currentAlien,times(1)).getBomb();
+            }
+        } else {
+            for (Alien currentAlien : aliens) {
+                verify(bomb, never()).setDestroyed(false);
+            }
+        }
+    }
+
+    @Test
+    void testDoDrawing_InGame() throws Exception {
+        setPrivateField("inGame", true);
+
+        // Act
+        callPrivateMethod("doDrawing", graphicsMock);
+
+        // Assert
+        verify(graphicsMock).setColor(Color.black);
+        verify(graphicsMock).fillRect(0, 0, Commons.BOARD_WIDTH, Commons.BOARD_HEIGHT);
+        verify(graphicsMock).setColor(Color.green);
+        verify(graphicsMock).drawLine(0, Commons.GROUND, Commons.BOARD_WIDTH, Commons.GROUND);
+    }
+
+    @Test
+    void testDoDrawing_GameOver() throws Exception {
+        // Arrange
+        setPrivateField("inGame", false);
+
+        // Act
+        callPrivateMethod("doDrawing", graphicsMock);
+
+        // Assert
+        verify(graphicsMock,times(2)).setColor(Color.black);
+        verify(graphicsMock,times(2)).fillRect(0, 0, Commons.BOARD_WIDTH, Commons.BOARD_HEIGHT);
+        verify(graphicsMock,times(1)).setColor(new Color(0, 32, 48));
+    }
+
+
+    // This test works 9 times out of 10
+    // and 5 times out of 5 in debugging mode
+    // this likely helps expose a race condition that
+    // is hidden in the code
+    @Test
+    public void testGameOverByPlayerDeath() throws Exception {
+        // Use reflection to access and modify private fields
+        Player player = Mockito.mock(Player.class);
+        setPrivateField("player", player);
+        Mockito.doNothing().when(player).act();
+
+        // Simulate player's death
+        Mockito.doReturn(true).when(player).isDying();
+
+//        when(player.isVisible()).thenReturn(false);
+        Mockito.doReturn(false).when(player).isVisible();
+        callPrivateMethod("drawPlayer", graphicsMock);
+
+//        callPrivateMethod();
+        callPrivateMethod("doDrawing", graphicsMock);
+
+        // Verify timer has stopped
+        assertFalse(isTimerRunning());
     }
 
 
